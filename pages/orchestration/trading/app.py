@@ -1,3 +1,6 @@
+import sys
+import os
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '../../..')))
 import datetime
 import time
 
@@ -6,7 +9,11 @@ import pandas as pd
 import plotly.graph_objects as go
 import streamlit as st
 
-from pages.config.env_utils import get_default_connector
+try:
+    from pages.config.docker_utils import get_default_connector
+except ImportError:
+    def get_default_connector():
+        return "binance"
 from plotly.subplots import make_subplots
 from frontend.st_utils import get_backend_api_client, initialize_st_page
 
@@ -70,12 +77,11 @@ def get_accounts_and_credentials():
 def get_candles_connectors():
     """Get available candles feed connectors."""
     try:
-        # Use connector list from env_utils
-        from pages.config.env_utils import get_connector_list
+        from pages.config.docker_utils import get_connector_list
         return get_connector_list()
     except Exception as e:
         st.warning(f"Could not fetch candles feed connectors: {e}")
-        return []
+        return ["binance", "bybit", "okx", "bitget", "gate_io", "kucoin"]
 
 
 def get_positions():

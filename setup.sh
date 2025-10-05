@@ -20,11 +20,13 @@ echo ""
 
 
 
-# Use Python utils.py to get connector lists and default connector
-CONNECTOR_LIST_US=$(python3 -c "from pages.config.utils import get_connector_list; import os; os.environ['US_DEPLOYMENT']='true'; print(get_connector_list())")
-CONNECTOR_LIST_GLOBAL=$(python3 -c "from pages.config.utils import get_connector_list; import os; os.environ['US_DEPLOYMENT']='false'; print(get_connector_list())")
-DEFAULT_CONNECTOR_ENV=$(python3 -c "from pages.config.utils import get_default_connector_name; print(get_default_connector_name())")
-CONNECTOR_LIST_TESTS=$(python3 -c "import os; from dotenv import load_dotenv; load_dotenv(); print(os.getenv('CONNECTOR_LIST_TESTS'))")
+# Use standalone utils (same logic as utils.py but without Docker dependencies)
+export US_DEPLOYMENT=true
+CONNECTOR_LIST_US=$(python setup_utils.py get_connector_list)
+export US_DEPLOYMENT=false
+CONNECTOR_LIST_GLOBAL=$(python setup_utils.py get_connector_list)
+DEFAULT_CONNECTOR_ENV=$(python setup_utils.py get_default_connector_name)
+CONNECTOR_LIST_TESTS=$(python setup_utils.py get_connector_list_tests)
 
 
 echo -n "Is this deployment for a US-based user? [y/N][default: N]: "
@@ -32,27 +34,27 @@ read IS_US_DEPLOYMENT
 IS_US_DEPLOYMENT=$(echo "$IS_US_DEPLOYMENT" | tr '[:upper:]' '[:lower:]')
 if [[ "$IS_US_DEPLOYMENT" == "y" || "$IS_US_DEPLOYMENT" == "yes" ]]; then
     IS_US_DEPLOYMENT=true
-    DEFAULT_CONNECTOR="$DEFAULT_CONNECTOR_ENV"
     CONNECTOR_LIST=$CONNECTOR_LIST_US
+    DEFAULT_CONNECTOR="kraken"
 else
     IS_US_DEPLOYMENT=false
-    DEFAULT_CONNECTOR="$DEFAULT_CONNECTOR_ENV"
     CONNECTOR_LIST=$CONNECTOR_LIST_GLOBAL
+    DEFAULT_CONNECTOR="$DEFAULT_CONNECTOR_ENV"
 fi
 
-# Prompt for test connectors (default: exclude)
-echo -n "Exclude test connectors? [Y/n][default: Y]: "
+# Prompt for test connectors (default: include)
+echo -n "Exclude test connectors? [y/N][default: N]: "
 read EXCLUDE_TEST_CONNECTORS
 EXCLUDE_TEST_CONNECTORS=$(echo "$EXCLUDE_TEST_CONNECTORS" | tr '[:upper:]' '[:lower:]')
-if [[ "$EXCLUDE_TEST_CONNECTORS" == "n" || "$EXCLUDE_TEST_CONNECTORS" == "no" ]]; then
-    EXCLUDE_TEST_CONNECTORS=false
-    # Merge test connectors into main connector list
-    CONNECTOR_LIST=$(echo $CONNECTOR_LIST | sed 's/^\[//;s/\]$//')
-    CONNECTOR_LIST_TESTS=$(echo $CONNECTOR_LIST_TESTS | sed 's/^\[//;s/\]$//')
-    CONNECTOR_LIST="[${CONNECTOR_LIST}, ${CONNECTOR_LIST_TESTS}]"
-else
+if [[ "$EXCLUDE_TEST_CONNECTORS" == "y" || "$EXCLUDE_TEST_CONNECTORS" == "yes" ]]; then
     EXCLUDE_TEST_CONNECTORS=true
     # Do not merge test connectors
+else
+    EXCLUDE_TEST_CONNECTORS=false
+    # Merge test connectors into main connector list (default behavior)
+    CONNECTOR_LIST=$(echo $CONNECTOR_LIST | sed 's/^\[//;s/\]$//')
+    CONNECTOR_LIST_TESTS_FOR_MERGE=$(echo $CONNECTOR_LIST_TESTS | sed 's/^\[//;s/\]$//')
+    CONNECTOR_LIST="[${CONNECTOR_LIST}, ${CONNECTOR_LIST_TESTS_FOR_MERGE}]"
 fi
 
 echo -n "Config password [default: admin]: "
@@ -101,6 +103,10 @@ echo ""
 echo -e "${GREEN}📝 Creating .env file...${NC}"
 
 # Create .env file with proper structure and comments
+
+# Set API URL and PORT for dashboard/trading
+BACKEND_API_URL=localhost
+BACKEND_API_PORT=8000
 
 cat > .env << EOF
 # =================================================================
