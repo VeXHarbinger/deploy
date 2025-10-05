@@ -11,6 +11,8 @@ from hummingbot.strategy_v2.executors.data_types import ConnectorPair
 from hummingbot.strategy_v2.executors.order_executor.data_types import ExecutionStrategy, OrderExecutorConfig
 from hummingbot.strategy_v2.executors.position_executor.data_types import PositionExecutorConfig, TripleBarrierConfig
 from hummingbot.strategy_v2.models.executor_actions import CreateExecutorAction, ExecutorAction, StopExecutorAction
+
+from pages.config.env_utils import get_default_connector_name
 from hummingbot.strategy_v2.models.executors import CloseType
 
 
@@ -22,7 +24,7 @@ class PMMAdjustedConfig(ControllerConfigBase):
     controller_name: str = "pmm_adjusted"
     candles_config: List[CandlesConfig] = []
     connector_name: str = Field(
-        default="binance",
+        default_factory=get_default_connector_name,
         json_schema_extra={
             "prompt_on_new": True,
             "prompt": "Enter the name of the connector to use (e.g., binance):",
@@ -35,7 +37,7 @@ class PMMAdjustedConfig(ControllerConfigBase):
             "prompt": "Enter the trading pair to trade on (e.g., BTC-FDUSD):",
         }
     )
-    candles_connector_name: str = Field(default="binance")
+    candles_connector_name: str = Field(default_factory=get_default_connector_name)
     candles_trading_pair: str = Field(default="BTC-USDT")
     candles_interval: str = Field(default="1s")
 

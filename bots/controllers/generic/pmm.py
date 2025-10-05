@@ -9,6 +9,8 @@ from hummingbot.data_feed.candles_feed.data_types import CandlesConfig
 from hummingbot.strategy_v2.controllers.controller_base import ControllerBase, ControllerConfigBase
 from hummingbot.strategy_v2.executors.data_types import ConnectorPair
 from hummingbot.strategy_v2.executors.order_executor.data_types import ExecutionStrategy, OrderExecutorConfig
+
+from pages.config.env_utils import get_default_connector_name
 from hummingbot.strategy_v2.executors.position_executor.data_types import PositionExecutorConfig, TripleBarrierConfig
 from hummingbot.strategy_v2.models.executor_actions import CreateExecutorAction, ExecutorAction, StopExecutorAction
 from hummingbot.strategy_v2.models.executors import CloseType
@@ -21,8 +23,10 @@ class PMMConfig(ControllerConfigBase):
     controller_type: str = "generic"
     controller_name: str = "pmm"
     candles_config: List[CandlesConfig] = []
+
+
     connector_name: str = Field(
-        default="binance",
+        default_factory=get_default_connector_name,
         json_schema_extra={
             "prompt_on_new": True,
             "prompt": "Enter the name of the connector to use (e.g., binance):",

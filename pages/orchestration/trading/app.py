@@ -5,8 +5,9 @@ import nest_asyncio
 import pandas as pd
 import plotly.graph_objects as go
 import streamlit as st
-from plotly.subplots import make_subplots
 
+from pages.config.env_utils import get_default_connector
+from plotly.subplots import make_subplots
 from frontend.st_utils import get_backend_api_client, initialize_st_page
 
 # Enable nested async
@@ -26,7 +27,7 @@ if "selected_account" not in st.session_state:
 if "selected_connector" not in st.session_state:
     st.session_state.selected_connector = None
 if "selected_market" not in st.session_state:
-    st.session_state.selected_market = {"connector": "binance_perpetual", "trading_pair": "BTC-USDT"}
+    st.session_state.selected_market = {"connector": get_default_connector(), "trading_pair": "BTC-USDT"}
 if "candles_connector" not in st.session_state:
     st.session_state.candles_connector = None
 if "auto_refresh_enabled" not in st.session_state:
@@ -69,8 +70,9 @@ def get_accounts_and_credentials():
 def get_candles_connectors():
     """Get available candles feed connectors."""
     try:
-        # For now, return a hardcoded list of known exchanges that provide candles
-        return ["binance", "binance_perpetual", "kucoin", "okx", "okx_perpetual", "gate_io"]
+        # Use connector list from env_utils
+        from pages.config.env_utils import get_connector_list
+        return get_connector_list()
     except Exception as e:
         st.warning(f"Could not fetch candles feed connectors: {e}")
         return []

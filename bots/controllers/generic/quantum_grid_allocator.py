@@ -1,4 +1,5 @@
 from decimal import Decimal
+from pages.config.env_utils import get_default_connector_name
 from typing import Dict, List, Set, Union
 
 import pandas_ta as ta  # noqa: F401
@@ -47,7 +48,7 @@ class QGAConfig(ControllerConfigBase):
     max_deviation: Decimal = Field(default=Decimal("0.05"), json_schema_extra={"is_updatable": True})
     max_open_orders: int = Field(default=2, json_schema_extra={"is_updatable": True})
     # Exchange settings
-    connector_name: str = "binance"
+    connector_name: str = get_default_connector_name()
     leverage: int = 1
     position_mode: PositionMode = PositionMode.HEDGE
     quote_asset: str = "FDUSD"
