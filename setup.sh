@@ -20,10 +20,10 @@ echo ""
 
 
 
-# Use Python env_utils.py to get connector lists and default connector
-CONNECTOR_LIST_US=$(python3 -c "from pages.config.env_utils import get_connector_list; import os; os.environ['US_DEPLOYMENT']='true'; print(get_connector_list())")
-CONNECTOR_LIST_GLOBAL=$(python3 -c "from pages.config.env_utils import get_connector_list; import os; os.environ['US_DEPLOYMENT']='false'; print(get_connector_list())")
-DEFAULT_CONNECTOR_ENV=$(python3 -c "from pages.config.env_utils import get_default_connector_name; print(get_default_connector_name())")
+# Use Python utils.py to get connector lists and default connector
+CONNECTOR_LIST_US=$(python3 -c "from pages.config.utils import get_connector_list; import os; os.environ['US_DEPLOYMENT']='true'; print(get_connector_list())")
+CONNECTOR_LIST_GLOBAL=$(python3 -c "from pages.config.utils import get_connector_list; import os; os.environ['US_DEPLOYMENT']='false'; print(get_connector_list())")
+DEFAULT_CONNECTOR_ENV=$(python3 -c "from pages.config.utils import get_default_connector_name; print(get_default_connector_name())")
 CONNECTOR_LIST_TESTS=$(python3 -c "import os; from dotenv import load_dotenv; load_dotenv(); print(os.getenv('CONNECTOR_LIST_TESTS'))")
 
 
