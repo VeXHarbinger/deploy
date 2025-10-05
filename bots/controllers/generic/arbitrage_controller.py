@@ -6,6 +6,8 @@ import pandas as pd
 from hummingbot.client.ui.interface_utils import format_df_for_printout
 from hummingbot.core.data_type.common import MarketDict
 from hummingbot.data_feed.candles_feed.data_types import CandlesConfig
+
+from pages.config.env_utils import get_default_connector_name
 from hummingbot.strategy_v2.controllers.controller_base import ControllerBase, ControllerConfigBase
 from hummingbot.strategy_v2.executors.arbitrage_executor.data_types import ArbitrageExecutorConfig
 from hummingbot.strategy_v2.executors.data_types import ConnectorPair
@@ -16,12 +18,12 @@ from hummingbot.strategy_v2.models.executor_actions import CreateExecutorAction,
 class ArbitrageControllerConfig(ControllerConfigBase):
     controller_name: str = "arbitrage_controller"
     candles_config: List[CandlesConfig] = []
-    exchange_pair_1: ConnectorPair = ConnectorPair(connector_name="binance", trading_pair="PENGU-USDT")
+    exchange_pair_1: ConnectorPair = ConnectorPair(connector_name=get_default_connector_name(), trading_pair="PENGU-USDT")
     exchange_pair_2: ConnectorPair = ConnectorPair(connector_name="solana_jupiter_mainnet-beta", trading_pair="PENGU-USDC")
     min_profitability: Decimal = Decimal("0.01")
     delay_between_executors: int = 10  # in seconds
     max_executors_imbalance: int = 1
-    rate_connector: str = "binance"
+    rate_connector: str = get_default_connector_name()
     quote_conversion_asset: str = "USDT"
 
     def update_markets(self, markets: MarketDict) -> MarketDict:

@@ -1,0 +1,12 @@
+ccxt
+streamlit>=1.28.0
+watchdog
+plotly
+pycoingecko
+glom
+defillama
+statsmodels
+pandas_ta
+sqlalchemy
+pyyaml
+pandas

@@ -23,8 +23,9 @@ class XEMMMultipleLevelsConfig(ControllerConfigBase):
     maker_trading_pair: str = Field(
         default="PEPE-USDT",
         json_schema_extra={"prompt": "Enter the maker trading pair: ", "prompt_on_new": True})
+    from pages.config.env_utils import get_default_connector_name
     taker_connector: str = Field(
-        default="binance",
+        default=get_default_connector_name(),
         json_schema_extra={"prompt": "Enter the taker connector: ", "prompt_on_new": True})
     taker_trading_pair: str = Field(
         default="PEPE-USDT",

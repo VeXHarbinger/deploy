@@ -18,6 +18,45 @@ NC='\033[0m' # No Color
 echo "🚀 Hummingbot Deploy Setup"
 echo ""
 
+
+
+# Use standalone utils (same logic as utils.py but without Docker dependencies)
+export US_DEPLOYMENT=true
+CONNECTOR_LIST_US=$(python setup_utils.py get_connector_list)
+export US_DEPLOYMENT=false
+CONNECTOR_LIST_GLOBAL=$(python setup_utils.py get_connector_list)
+DEFAULT_CONNECTOR_ENV=$(python setup_utils.py get_default_connector_name)
+CONNECTOR_LIST_TESTS=$(python setup_utils.py get_connector_list_tests)
+
+
+echo -n "Is this deployment for a US-based user? [y/N][default: N]: "
+read IS_US_DEPLOYMENT
+IS_US_DEPLOYMENT=$(echo "$IS_US_DEPLOYMENT" | tr '[:upper:]' '[:lower:]')
+if [[ "$IS_US_DEPLOYMENT" == "y" || "$IS_US_DEPLOYMENT" == "yes" ]]; then
+    IS_US_DEPLOYMENT=true
+    CONNECTOR_LIST=$CONNECTOR_LIST_US
+    DEFAULT_CONNECTOR="kraken"
+else
+    IS_US_DEPLOYMENT=false
+    CONNECTOR_LIST=$CONNECTOR_LIST_GLOBAL
+    DEFAULT_CONNECTOR="$DEFAULT_CONNECTOR_ENV"
+fi
+
+# Prompt for test connectors (default: include)
+echo -n "Exclude test connectors? [y/N][default: N]: "
+read EXCLUDE_TEST_CONNECTORS
+EXCLUDE_TEST_CONNECTORS=$(echo "$EXCLUDE_TEST_CONNECTORS" | tr '[:upper:]' '[:lower:]')
+if [[ "$EXCLUDE_TEST_CONNECTORS" == "y" || "$EXCLUDE_TEST_CONNECTORS" == "yes" ]]; then
+    EXCLUDE_TEST_CONNECTORS=true
+    # Do not merge test connectors
+else
+    EXCLUDE_TEST_CONNECTORS=false
+    # Merge test connectors into main connector list (default behavior)
+    CONNECTOR_LIST=$(echo $CONNECTOR_LIST | sed 's/^\[//;s/\]$//')
+    CONNECTOR_LIST_TESTS_FOR_MERGE=$(echo $CONNECTOR_LIST_TESTS | sed 's/^\[//;s/\]$//')
+    CONNECTOR_LIST="[${CONNECTOR_LIST}, ${CONNECTOR_LIST_TESTS_FOR_MERGE}]"
+fi
+
 echo -n "Config password [default: admin]: "
 read CONFIG_PASSWORD
 CONFIG_PASSWORD=${CONFIG_PASSWORD:-admin}
@@ -49,17 +88,37 @@ LOGFIRE_ENV="prod"
 BANNED_TOKENS='["NAV","ARS","ETHW","ETHF","NEWT"]'
 
 echo ""
+
+echo -e "${GREEN}📦 Installing Python dependencies from requirements.txt...${NC}"
+if [ -f requirements.txt ]; then
+    pip install -r requirements.txt
+    echo -e "${GREEN}✅ Python dependencies installed!${NC}"
+else
+    echo -e "${YELLOW}⚠️ requirements.txt not found. Please install dependencies manually if needed.${NC}"
+fi
+
 echo -e "${GREEN}✅ Using sensible defaults for MQTT, Database, and other settings${NC}"
 
 echo ""
 echo -e "${GREEN}📝 Creating .env file...${NC}"
 
 # Create .env file with proper structure and comments
+
+# Set API URL and PORT for dashboard/trading
+BACKEND_API_URL=localhost
+BACKEND_API_PORT=8000
+
 cat > .env << EOF
 # =================================================================
 # Hummingbot Deploy Environment Configuration
 # Generated on: $(date)
 # =================================================================
+
+# =================================================================
+# 🌎 Deployment Region
+# =================================================================
+US_DEPLOYMENT=$IS_US_DEPLOYMENT
+EXCLUDE_TEST_CONNECTORS=$EXCLUDE_TEST_CONNECTORS
 
 # =================================================================
 # 🔐 Security Configuration
@@ -105,6 +164,15 @@ BANNED_TOKENS=$BANNED_TOKENS
 # 📁 Application Paths
 # =================================================================
 BOTS_PATH=$BOTS_PATH
+
+# =================================================================
+# 🔗 Connector Lists
+# =================================================================
+CONNECTOR_LIST_US=$CONNECTOR_LIST_US
+CONNECTOR_LIST_GLOBAL=$CONNECTOR_LIST_GLOBAL
+CONNECTOR_LIST_TESTS=$CONNECTOR_LIST_TESTS
+DEFAULT_CONNECTOR=$DEFAULT_CONNECTOR
+AVAILABLE_CONNECTORS=$CONNECTOR_LIST
 
 EOF
 

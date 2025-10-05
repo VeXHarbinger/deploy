@@ -4,6 +4,9 @@ import pandas as pd
 import plotly.graph_objects as go
 import streamlit as st
 
+
+from pages.config.env_utils import get_connector_list
+
 from frontend.st_utils import get_backend_api_client, initialize_st_page
 
 # Initialize Streamlit page
@@ -12,9 +15,8 @@ backend_api_client = get_backend_api_client()
 
 c1, c2, c3, c4 = st.columns([2, 2, 2, 0.5])
 with c1:
-    connector = st.selectbox("Exchange",
-                             ["binance_perpetual", "binance", "gate_io", "gate_io_perpetual", "kucoin", "ascend_ex"],
-                             index=0)
+    connector_list = get_connector_list()
+    connector = st.selectbox("Exchange", connector_list, index=0)
     trading_pair = st.text_input("Trading Pair", value="BTC-USDT")
 with c2:
     interval = st.selectbox("Interval", options=["1m", "3m", "5m", "15m", "1h", "4h", "1d", "1s"])
